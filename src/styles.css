@@ -59,3 +59,4 @@ body{background:#f3f5f0;color:var(--ink)}
 .portal-header{background:#fff}.portal-main{color:var(--ink)}
 @media(max-width:860px){.sidebar{box-shadow:12px 0 34px #0c241a38}.main-content{background:#f3f5f0}}
 @media(max-width:640px){.page-wrap{padding-top:27px}.welcome-row h1{font-size:25px}.panel{padding:16px}.stat-card{padding:14px;min-height:118px}}
+.revenue-empty{height:175px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;color:#7f8b81}.revenue-empty .empty-illustration{margin:0;width:43px;height:43px}.revenue-empty strong{font:700 12px Manrope,sans-serif;color:#3b4a3f}.revenue-empty span{font-size:10px;line-height:1.5}
