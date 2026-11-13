@@ -39,6 +39,7 @@ export default function App(){
   const [session, setSession] = useState(null)
   const [profile, setProfile] = useState(null)
   const [authReady, setAuthReady] = useState(!hasSupabaseConfig)
+  const [recoveryMode, setRecoveryMode] = useState(false)
   const [students, setStudents] = useState([])
   const [payments, setPayments] = useState(samplePayments)
   const [appointments, setAppointments] = useState(sampleAppointments)
@@ -60,7 +61,11 @@ export default function App(){
     }
     let alive = true
     supabase.auth.getSession().then(({data})=>{ if(alive){ setSession(data.session); setAuthReady(true) } })
-    const {data:{subscription}} = supabase.auth.onAuthStateChange((_event,next)=>{ setSession(next); setAuthReady(true) })
+    const {data:{subscription}} = supabase.auth.onAuthStateChange((event,next)=>{
+      if(event === 'PASSWORD_RECOVERY') setRecoveryMode(true)
+      setSession(next)
+      setAuthReady(true)
+    })
     return ()=>{ alive=false; subscription.unsubscribe() }
   },[])
 
@@ -110,6 +115,7 @@ export default function App(){
 
   async function signOut(){ if(supabase) await supabase.auth.signOut(); setSession(null); setProfile(null) }
 
+  if(hasSupabaseConfig && recoveryMode) return <PasswordRecovery onComplete={()=>setRecoveryMode(false)} />
   if(hasSupabaseConfig && !authReady) return <div className="loading-screen"><span className="loader"/>Oturum kontrol ediliyor…</div>
   if(hasSupabaseConfig && !session) return <LoginScreen />
   if(hasSupabaseConfig && session && profile && profile.role!=='admin') return <StudentView user={session.user} profile={profile} onSignOut={signOut} />
@@ -140,8 +146,26 @@ export default function App(){
 function LoginScreen(){
   const [email,setEmail]=useState(''); const [password,setPassword]=useState(''); const [working,setWorking]=useState(false); const [error,setError]=useState('')
   async function login(e){e.preventDefault();setWorking(true);setError('');const {error}=await supabase.auth.signInWithPassword({email,password});if(error)setError(error.message);setWorking(false)}
-  async function reset(){if(!email){setError('Önce e-posta adresini yaz.');return}const {error}=await supabase.auth.resetPasswordForEmail(email);setError(error?error.message:'Şifre sıfırlama bağlantısı e-posta adresine gönderildi.')}
+  async function reset(){if(!email){setError('Önce e-posta adresini yaz.');return}setWorking(true);const redirectTo=`${window.location.origin}${import.meta.env.BASE_URL}`;const {error}=await supabase.auth.resetPasswordForEmail(email,{redirectTo});setError(error?error.message:'Şifre belirleme bağlantısı e-posta adresine gönderildi.');setWorking(false)}
   return <div className="login-page"><div className="login-visual"><div className="brand"><div className="brand-mark"><Activity size={20}/></div><div><strong>EMRE AKKOYUN</strong><span>PERSONAL TRAINER</span></div></div><div className="login-art"><div className="art-orbit orbit-one"/><div className="art-orbit orbit-two"/><div className="art-sun"/><Activity size={220} strokeWidth={0.7}/><span>STRENGTH<br/>IN EVERY<br/>STEP.</span></div><div className="login-caption"><span>01 / 03</span><p>Her hedef, doğru<br/>planla başlar.</p></div></div><div className="login-form-wrap"><form className="login-form" onSubmit={login}><div className="eyebrow">HOŞ GELDİN</div><h1>Hesabına giriş yap</h1><p>Antrenman yolculuğuna kaldığın yerden devam et.</p><label>E-posta adresi<input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="ornek@email.com" required autoComplete="email"/></label><label>Şifre<input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" required autoComplete="current-password"/></label>{error&&<div className="form-error">{error}</div>}<button className="btn-primary login-submit" disabled={working}>{working?'Giriş yapılıyor…':'Giriş yap'} <ArrowRight size={16}/></button><button type="button" className="text-link" onClick={reset}>Şifremi unuttum</button><div className="secure-note"><ShieldCheck size={15}/> Hesabın güvenli Supabase girişiyle korunuyor.</div></form><div className="login-footer">© 2026 Emre Akkoyun <span>·</span> Gizlilik ve kullanım</div></div></div>
+}
+
+function PasswordRecovery({onComplete}){
+  const [password,setPassword]=useState('')
+  const [confirm,setConfirm]=useState('')
+  const [working,setWorking]=useState(false)
+  const [error,setError]=useState('')
+  const [saved,setSaved]=useState(false)
+  async function submit(e){
+    e.preventDefault(); setError('')
+    if(password.length<8){setError('Şifren en az 8 karakter olmalı.');return}
+    if(password!==confirm){setError('Şifreler eşleşmiyor.');return}
+    setWorking(true)
+    const {error:saveError}=await supabase.auth.updateUser({password})
+    if(saveError)setError(saveError.message);else setSaved(true)
+    setWorking(false)
+  }
+  return <div className="recovery-page"><div className="recovery-brand"><div className="brand-mark"><Activity size={20}/></div><div><strong>EMRE AKKOYUN</strong><span>PERSONAL TRAINER</span></div></div><form className="recovery-card" onSubmit={submit}><div className="eyebrow">HESAP GÜVENLİĞİ</div><h1>Yeni şifreni belirle</h1><p>Belirleyeceğin şifreyle masaüstü ve mobil cihazlardan giriş yapabilirsin.</p>{!saved?<><label>Yeni şifre<input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="En az 8 karakter" minLength={8} required autoComplete="new-password"/></label><label>Şifreyi tekrar yaz<input type="password" value={confirm} onChange={e=>setConfirm(e.target.value)} placeholder="Yeni şifreni doğrula" required autoComplete="new-password"/></label>{error&&<div className="form-error">{error}</div>}<button className="btn-primary recovery-submit" disabled={working}>{working?'Kaydediliyor…':'Şifreyi kaydet'} <ArrowRight size={16}/></button></>:<><div className="recovery-success"><Check size={17}/> Şifren kaydedildi. Artık mobil ve masaüstünde kullanabilirsin.</div><button type="button" className="btn-primary recovery-submit" onClick={onComplete}>Uygulamaya geç <ArrowRight size={16}/></button></>}</form><div className="recovery-footer">© 2026 Emre Akkoyun PT Management</div></div>
 }
 
 function Dashboard({students,activeStudents,payments,appointments,receivedTotal,dueTotal,period,setPeriod,loading,onOpenStudents,onOpenCalendar,onOpenFinances}){
