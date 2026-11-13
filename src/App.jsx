@@ -20,11 +20,6 @@ const sampleAppointments = [
   { id:'a3', time:'13:00', name:'Elif Demir', type:'Kondisyon · HIIT', status:'scheduled', initials:'ED', color:'mint' },
   { id:'a4', time:'15:30', name:'Derya Şahin', type:'Full body · Mobilite', status:'scheduled', initials:'DŞ', color:'butter' },
 ]
-const samplePayments = [
-  { id:'p1', name:'Mert Yılmaz', date:'Bugün', description:'Aylık PT paketi', amount:8500, status:'paid', initials:'MY', color:'lavender' },
-  { id:'p2', name:'Derya Şahin', date:'Dün', description:'8 seans paketi', amount:6400, status:'pending', initials:'DŞ', color:'butter' },
-  { id:'p3', name:'Zeynep Kaya', date:'12 Kas', description:'Aylık PT paketi', amount:8500, status:'paid', initials:'ZK', color:'peach' },
-]
 const navItems = [
   { label:'Genel Bakış', icon:LayoutDashboard }, { label:'Öğrenciler', icon:Users },
   { label:'Antrenman', icon:Dumbbell }, { label:'Beslenme', icon:Apple },
@@ -41,7 +36,7 @@ export default function App(){
   const [authReady, setAuthReady] = useState(!hasSupabaseConfig)
   const [recoveryMode, setRecoveryMode] = useState(false)
   const [students, setStudents] = useState([])
-  const [payments, setPayments] = useState(samplePayments)
+  const [payments, setPayments] = useState([])
   const [appointments, setAppointments] = useState(sampleAppointments)
   const [loading, setLoading] = useState(false)
   const [activePage, setActivePage] = useState('Genel Bakış')
@@ -55,8 +50,8 @@ export default function App(){
     if(!supabase){
       try { setStudents(JSON.parse(localStorage.getItem('pt-demo-students')) || sampleStudents) }
       catch { setStudents(sampleStudents) }
-      try { setPayments(JSON.parse(localStorage.getItem('pt-demo-payments')) || samplePayments) }
-      catch { setPayments(samplePayments) }
+      try { setPayments(JSON.parse(localStorage.getItem('pt-demo-payments')) || []) }
+      catch { setPayments([]) }
       return
     }
     let alive = true
@@ -77,13 +72,13 @@ export default function App(){
       const [{data:pr,error:prError},{data:st,error:stError},{data:pay,error:payError},{data:ap,error:apError}] = await Promise.all([
         supabase.from('profiles').select('full_name,role,avatar_url').eq('id',session.user.id).single(),
         supabase.from('students').select('*').order('created_at',{ascending:false}),
-        supabase.from('payments').select('id,student_id,description,amount,status,due_date,paid_at,students(full_name)').order('created_at',{ascending:false}).limit(5),
+        supabase.from('payments').select('id,student_id,description,amount,status,due_date,paid_at,created_at,students(full_name)').order('created_at',{ascending:false}).limit(100),
         supabase.from('appointments').select('id,student_id,starts_at,ends_at,status,notes,students(full_name)').gte('starts_at',new Date(new Date().setHours(0,0,0,0)).toISOString()).order('starts_at').limit(6),
       ])
       if(!alive)return
       if(prError){setNotice(prError.message);setProfile(null)} else setProfile(pr)
       if(!stError)setStudents(st||[]); else setNotice(stError.message)
-      if(!payError)setPayments((pay||[]).map(p=>({id:p.id,name:p.students?.full_name||'Öğrenci',date:p.due_date?fmtDate(p.due_date):'—',description:p.description,amount:p.amount,status:p.status,initials:initials(p.students?.full_name||''),color:'mint'})))
+      if(!payError)setPayments((pay||[]).map(p=>({id:p.id,name:p.students?.full_name||'Öğrenci',date:p.due_date?fmtDate(p.due_date):'—',description:p.description,amount:p.amount,status:p.status,paid_at:p.paid_at,created_at:p.created_at,initials:initials(p.students?.full_name||''),color:'mint'})))
       if(!apError)setAppointments((ap||[]).map(a=>({id:a.id,time:new Date(a.starts_at).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}),name:a.students?.full_name||'Öğrenci',type:a.notes||'Özel antrenman',status:a.status,initials:initials(a.students?.full_name||''),color:'peach'})))
       setLoading(false)
     }
@@ -169,17 +164,20 @@ function PasswordRecovery({onComplete}){
 }
 
 function Dashboard({students,activeStudents,payments,appointments,receivedTotal,dueTotal,period,setPeriod,loading,onOpenStudents,onOpenCalendar,onOpenFinances}){
- const max= Math.max(1,...[34,42,37,55,48,65,58,72,60,78,69,90]);
+ const currentWeekStart=new Date();currentWeekStart.setHours(0,0,0,0);currentWeekStart.setDate(currentWeekStart.getDate()-((currentWeekStart.getDay()+6)%7))
+ const weeklyIncome=Array.from({length:12},(_,index)=>{const start=new Date(currentWeekStart);start.setDate(start.getDate()-(11-index)*7);const end=new Date(start);end.setDate(end.getDate()+7);const amount=payments.filter(p=>p.status==='paid'&&(p.paid_at||p.created_at)&&new Date(p.paid_at||p.created_at)>=start&&new Date(p.paid_at||p.created_at)<end).reduce((sum,p)=>sum+Number(p.amount||0),0);return{start,amount}})
+ const max=Math.max(1,...weeklyIncome.map(w=>w.amount))
+ const hasWeeklyIncome=weeklyIncome.some(w=>w.amount>0)
  const weekdays=['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
  return <>
   <section className="stats-grid">
    <StatCard icon={Users} label="Toplam öğrenci" value={String(students.length).padStart(2,'0')} note={<><span className="up-pill"><ArrowUpRight size={12}/> 12%</span><span>geçen aya göre</span></>} tone="mint"/>
-   <StatCard icon={CircleDollarSign} label="Bu ay tahsilat" value={money(receivedTotal)} note={<><span className="up-pill"><ArrowUpRight size={12}/> 8,4%</span><span>geçen aya göre</span></>} tone="gold"/>
+   <StatCard icon={CircleDollarSign} label="Toplam tahsilat" value={money(receivedTotal)} note={<><span className="neutral-pill">{payments.filter(p=>p.status==='paid').length} kayıt</span><span>{receivedTotal?'tahsil edildi':'henüz tahsilat yok'}</span></>} tone="gold"/>
    <StatCard icon={CalendarDays} label="Bugünkü seanslar" value={String(appointments.length).padStart(2,'0')} note={<><span className="neutral-pill">{appointments.filter(a=>a.status==='completed').length} tamamlandı</span></>} tone="lavender"/>
-   <StatCard icon={Clock3} label="Bekleyen ödeme" value={money(dueTotal)} note={<><span className="down-pill"><ArrowDownRight size={12}/> Takip et</span><span>ödenmemiş bakiye</span></>} tone="rose"/>
+   <StatCard icon={Clock3} label="Bekleyen ödeme" value={money(dueTotal)} note={<><span className={dueTotal?'down-pill':'neutral-pill'}>{dueTotal?'Takip et':'0 kayıt'}</span><span>{dueTotal?'ödenmemiş bakiye':'bekleyen borç yok'}</span></>} tone="rose"/>
   </section>
   <section className="overview-grid">
-   <div className="panel growth-panel"><div className="panel-head"><div><div className="panel-kicker">GENEL PERFORMANS</div><h2>Gelir görünümü</h2><p>Son 12 haftadaki tahsilatların</p></div><button className="select-btn" onClick={()=>setPeriod(period==='Bu ay'?'Son 3 ay':'Bu ay')}>{period}<ChevronDown size={14}/></button></div><div className="chart-summary"><strong>{money(receivedTotal||23800)}</strong><span className="chart-change"><ArrowUpRight size={14}/> %18,6 <em>önceki döneme göre</em></span></div><div className="chart"><div className="chart-y"><span>₺30b</span><span>₺20b</span><span>₺10b</span><span>₺0</span></div><div className="chart-area"><div className="chart-gridlines"><i/><i/><i/><i/></div><div className="bars">{[34,42,37,55,48,65,58,72,60,78,69,90].map((v,i)=><div className="bar-col" key={i}><span className="bar" style={{height:`${v/max*90}%`}}/><span className="bar-label">{['Ağu','Ağu','Eyl','Eyl','Eyl','Eki','Eki','Eki','Kas','Kas','Kas','Kas'][i]}</span></div>)}</div></div></div><div className="chart-legend"><span><i className="legend-dot current"/>Bu dönem</span><span><i className="legend-dot previous"/>Önceki dönem</span></div></div>
+   <div className="panel growth-panel"><div className="panel-head"><div><div className="panel-kicker">GENEL PERFORMANS</div><h2>Gelir görünümü</h2><p>Son 12 haftadaki tahsilatların</p></div><button className="select-btn" onClick={()=>setPeriod(period==='Bu ay'?'Son 3 ay':'Bu ay')}>{period}<ChevronDown size={14}/></button></div><div className="chart-summary"><strong>{money(receivedTotal)}</strong><span className="chart-change"><CircleDollarSign size={14}/>{payments.filter(p=>p.status==='paid').length} tahsilat</span></div>{hasWeeklyIncome?<><div className="chart"><div className="chart-y"><span>{money(max)}</span><span>{money(max*2/3)}</span><span>{money(max/3)}</span><span>₺0</span></div><div className="chart-area"><div className="chart-gridlines"><i/><i/><i/><i/></div><div className="bars">{weeklyIncome.map((week,i)=><div className="bar-col" key={i}><span className="bar" style={{height:`${Math.max(5,week.amount/max*90)}%`}}/><span className="bar-label">{week.start.toLocaleDateString('tr-TR',{month:'short',day:'numeric'})}</span></div>)}</div></div></div><div className="chart-legend"><span><i className="legend-dot current"/>Haftalık tahsilat</span></div></>:<div className="revenue-empty"><div className="empty-illustration"><CircleDollarSign size={24}/></div><strong>Henüz gelir kaydı yok</strong><span>Ödeme eklediğinde tahsilat grafiğin burada oluşacak.</span></div>}</div>
    <div className="panel appointments-panel"><div className="panel-head compact"><div><div className="panel-kicker">13 KASIM, PERŞEMBE</div><h2>Günün seansları</h2></div><button className="icon-btn" onClick={onOpenCalendar} aria-label="Takvimi aç"><ArrowRight size={17}/></button></div><div className="date-strip"><button aria-label="Önceki gün"><ChevronLeft size={16}/></button>{['11','12','13','14','15','16','17'].map((d,i)=><button className={d==='13'?'selected':''} key={d}><span>{['Sal','Çar','Per','Cum','Cmt','Paz','Pzt'][i]}</span><b>{d}</b></button>)}<button aria-label="Sonraki gün"><ChevronRight size={16}/></button></div><div className="appointment-list">{appointments.slice(0,4).map(a=><AppointmentRow key={a.id} item={a}/>)}</div><button className="panel-link" onClick={onOpenCalendar}>Tüm takvimi görüntüle <ArrowRight size={14}/></button></div>
   </section>
   <section className="bottom-grid"><div className="panel students-panel"><div className="panel-head"><div><div className="panel-kicker">ÖĞRENCİ TAKİBİ</div><h2>Öğrencilerin</h2><p>Aktif öğrenci ilerlemesi</p></div><button className="panel-link inline" onClick={onOpenStudents}>Tümünü gör <ArrowRight size={14}/></button></div><div className="student-table-wrap"><table className="student-table"><thead><tr><th>ÖĞRENCİ</th><th>HEDEF</th><th>İLERLEME</th><th>DURUM</th></tr></thead><tbody>{students.slice(0,4).map((s,i)=><tr key={s.id}><td><div className="person-cell"><div className={`avatar avatar-${['peach','lavender','mint','butter'][i%4]}`}>{initials(s.full_name)}</div><div><strong>{s.full_name}</strong><span>{s.email||'PT öğrencisi'}</span></div></div></td><td><span className="goal-tag">{s.goal||'Genel sağlık'}</span></td><td><div className="progress-cell"><div className="progress-line"><i style={{width:`${[68,42,83,56][i]}%`}}/></div><span>{[68,42,83,56][i]}%</span></div></td><td><span className={`status ${s.status==='active'?'status-active':'status-inactive'}`}><i/>{s.status==='active'?'Aktif':'Pasif'}</span></td></tr>)}</tbody></table>{!students.length&&<EmptyState text="Henüz öğrenci kaydı yok."/>}</div><div className="student-list-footer"><span><b>{activeStudents}</b> aktif öğrenci</span><button onClick={onOpenStudents}>Öğrenci yönetimine git <ArrowRight size={14}/></button></div></div>
