@@ -6,6 +6,7 @@ import {
   Search, ShieldCheck, SlidersHorizontal, Sparkles, Users, X,
 } from 'lucide-react'
 import { hasSupabaseConfig, supabase } from './lib/supabase'
+import StudentDetail from './components/StudentDetail'
 
 const navItems = [
   { label:'Genel Bakış', icon:LayoutDashboard }, { label:'Öğrenciler', icon:Users },
@@ -30,6 +31,7 @@ export default function App(){
   const [search, setSearch] = useState('')
   const [period, setPeriod] = useState('Bu ay')
   const [showAdd, setShowAdd] = useState(false)
+  const [selectedStudent, setSelectedStudent] = useState(null)
   const [notice, setNotice] = useState('')
   const [mobileNav, setMobileNav] = useState(false)
 
@@ -118,11 +120,12 @@ export default function App(){
         <div className="welcome-row"><div><div className="eyebrow">13 KASIM 2026 · PERŞEMBE</div><h1>{activePage==='Genel Bakış'?'Günaydın, Emre':activePage}<span className="wave">{activePage==='Genel Bakış'?' ☀':''}</span></h1><p>{activePage==='Genel Bakış'?'Bugün öğrencilerin için güzel bir gün. İşte stüdyondaki son durum.':'Öğrenci süreçlerini tek yerden takip et ve yönet.'}</p></div><div className="welcome-actions"><button className="btn-quiet" onClick={()=>setNotice('Rapor özeti hazır olduğunda burada görüntülenecek.')}><FileText size={16}/> Rapor al</button><button className="btn-primary" onClick={()=>setShowAdd(true)}><Plus size={17}/> Öğrenci ekle</button></div></div>
         {!hasSupabaseConfig&&<div className="demo-banner"><div><ShieldCheck size={16}/><span><strong>Supabase bağlantısı gerekli:</strong> gerçek öğrenci verileri için uygulama ortamı yapılandırılmalı.</span></div></div>}
         {notice&&<div className="toast"><Check size={16}/>{notice}<button onClick={()=>setNotice('')}><X size={15}/></button></div>}
-        {activePage==='Öğrenciler'?<StudentsPage students={visibleStudents} query={search} setQuery={setSearch} onAdd={()=>setShowAdd(true)} onApprove={approveStudent} onOpen={s=>setNotice(`${s.full_name} profili yakında açılacak.`)}/>:activePage==='Genel Bakış'?<Dashboard students={students} activeStudents={activeStudents} pendingStudents={pendingStudents} payments={payments} appointments={appointments} receivedTotal={receivedTotal} dueTotal={dueTotal} period={period} setPeriod={setPeriod} loading={loading} onOpenStudents={()=>setActivePage('Öğrenciler')} onOpenCalendar={()=>setActivePage('Takvim')} onOpenFinances={()=>setActivePage('Finans')}/>:<ModulePage page={activePage} students={students} appointments={appointments} payments={payments} onAdd={()=>setShowAdd(true)} onNotice={setNotice}/>}
+        {activePage==='Öğrenciler'?<StudentsPage students={visibleStudents} query={search} setQuery={setSearch} onAdd={()=>setShowAdd(true)} onApprove={approveStudent} onOpen={setSelectedStudent}/>:activePage==='Genel Bakış'?<Dashboard students={students} activeStudents={activeStudents} pendingStudents={pendingStudents} payments={payments} appointments={appointments} receivedTotal={receivedTotal} dueTotal={dueTotal} period={period} setPeriod={setPeriod} loading={loading} onOpenStudents={()=>setActivePage('Öğrenciler')} onOpenCalendar={()=>setActivePage('Takvim')} onOpenFinances={()=>setActivePage('Finans')}/>:<ModulePage page={activePage} students={students} appointments={appointments} payments={payments} onAdd={()=>setShowAdd(true)} onNotice={setNotice}/>}
       </div>
       <footer className="footer"><span>© 2026 Emre Akkoyun PT Management</span><span><i/> Tüm sistemler çalışıyor</span></footer>
     </main>
     {showAdd&&<AddStudentModal onClose={()=>setShowAdd(false)} onSave={createStudent}/>}
+    {selectedStudent&&<StudentDetail student={selectedStudent} onClose={()=>setSelectedStudent(null)} onChanged={student=>{setSelectedStudent(student);setStudents(current=>current.map(item=>item.id===student.id?student:item))}}/>}
   </div>
 }
 
