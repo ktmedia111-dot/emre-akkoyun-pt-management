@@ -38,4 +38,11 @@ The app uses Supabase Row Level Security: administrators manage all records, stu
 
 ## Deploy with GitHub Pages
 
-Push to `main`; the included GitHub Actions workflow builds the Vite app and publishes `dist/` to GitHub Pages. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` as repository Actions variables before publishing a connected app. Set the site's Supabase Auth redirect URLs to the GitHub Pages URL.
+The GitHub repository is the source of truth. GitHub Pages can publish the built app from the `gh-pages` branch for free:
+
+1. Build locally with `pnpm build`.
+2. Publish the contents of `dist/` to a `gh-pages` branch (for example with a GitHub Pages deploy tool).
+3. In repository **Settings → Pages**, choose **Deploy from a branch**, select `gh-pages` and `/(root)`.
+4. Add the deployed URL to Supabase **Authentication → URL Configuration → Redirect URLs**.
+
+For a Supabase-connected deployment, build with `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` set. Only the publishable/anon key belongs in a browser app; never publish a `service_role` key.
