@@ -6,3 +6,56 @@
 @media(max-width:370px){.page-wrap{padding-left:11px;padding-right:11px}.stats-grid{gap:7px}.stat-card{padding:10px}.stat-value{font-size:17px}.stat-note{font-size:7px}.topbar{padding:0 10px}.topbar-right{gap:5px}.welcome-row h1{font-size:21px}.btn-primary,.btn-quiet{padding:0 9px;font-size:10px}}
 
 .recovery-page{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 20px;background:radial-gradient(ellipse at 50% 0%,#e8f3ec 0,transparent 50%),#f6f8f5}.recovery-brand{display:flex;align-items:center;gap:11px;margin-bottom:25px}.recovery-brand strong{font:800 11px Manrope,sans-serif;letter-spacing:.09em;display:block;color:#26342c}.recovery-brand span{display:block;font-size:9px;color:#8c9690;letter-spacing:.15em;margin-top:4px}.recovery-card{width:min(440px,100%);padding:34px;background:#fff;border:1px solid #e9ede9;border-radius:16px;box-shadow:0 12px 40px #2330290b}.recovery-card h1{font:700 25px Manrope,sans-serif;letter-spacing:-.045em;margin:9px 0;color:#233029}.recovery-card>p{font-size:12px;line-height:1.65;color:#89928d;margin:0 0 24px}.recovery-card label{display:grid;gap:7px;margin:0 0 15px;color:#59655d;font-size:11px;font-weight:600}.recovery-card input{height:44px;width:100%;border:1px solid #e2e8e2;border-radius:8px;padding:0 12px;background:#fff;color:#26342c;font-size:13px}.recovery-card input:focus{border-color:#80b28d;outline:3px solid #8bc4a233}.recovery-submit{width:100%;height:43px;margin-top:5px}.recovery-submit svg{margin-left:auto}.recovery-success{display:flex;align-items:center;gap:9px;background:#eaf4ed;border:1px solid #cfe3d5;color:#32684a;border-radius:8px;padding:12px;font-size:11px;line-height:1.5;margin:18px 0 12px}.recovery-footer{margin-top:24px;color:#a5ada7;font-size:9px}@media(max-width:520px){.recovery-card{padding:26px 21px}.recovery-card h1{font-size:22px}}
+
+/* Refined forest and sage visual theme */
+:root{--ink:#192820;--muted:#758279;--line:#e5ebe5;--green:#2d7655;--deep:#102f22;--pale:#f4f6f1;--mint:#e7f1e8}
+body{background:#f3f5f0;color:var(--ink)}
+.sidebar{background:#153526;color:#f4f7f2;border-right:1px solid #254534;box-shadow:5px 0 24px #1836260a}
+.sidebar .brand-mark{background:#cce6a7;color:#1b4c35;border-radius:12px}
+.sidebar .brand strong{color:#f6f8f4}.sidebar .brand span{color:#a7b8aa}
+.workspace-label{color:#9caf9f}
+.sidebar .nav-item{color:#c1cec3;border-radius:10px}
+.sidebar .nav-item:hover{background:#204532;color:#fff}
+.sidebar .nav-item.active{background:#d8e9bd;color:#173b29}
+.sidebar .nav-item em{background:#f5f7ef;color:#31513b}
+.coach-card{background:#1b3d2c;border-color:#345443;border-radius:14px}
+.coach-icon{background:#294f39;color:#cde5ae}
+.coach-card>strong{color:#f4f7f2}.coach-card p{color:#bac8bb}
+.coach-card button,.sidebar .student-list-footer button,.sidebar .panel-link{color:#d3e9b3}
+.user-mini{border-color:#345140}.user-label strong{color:#fff}.user-label span{color:#a9b9ab}
+.sidebar .icon-btn{color:#bac9bc}.sidebar .icon-btn:hover{background:#254a35;color:#fff}
+.avatar-coach{background:#d9eabf;color:#254c34}
+.main-content{background:#f3f5f0}
+.topbar{background:rgba(250,251,248,.92);border-color:#e3e9e2}
+.page-wrap{padding-top:42px}
+.welcome-row h1{color:#183927;font-size:29px;letter-spacing:-.055em}
+.eyebrow,.panel-kicker{color:#6f8c76}
+.panel,.stat-card{border-color:#e3e9e2;border-radius:15px;box-shadow:0 5px 18px rgba(25,51,34,.035)}
+.stat-card{background:linear-gradient(145deg,#fff 0%,#fbfcf9 100%);min-height:132px;padding:17px 18px}
+.stat-value{color:#173b29}
+.stat-icon{border-radius:10px}
+.panel{padding:19px}
+.students-panel{padding-top:18px}
+.btn-primary{background:#2d7655;border-color:#2d7655;border-radius:9px;box-shadow:0 3px 8px #2d765522}
+.btn-primary:hover{background:#225f43;border-color:#225f43}
+.btn-quiet,.filter-btn{border-radius:9px;border-color:#dce5dc}
+.btn-quiet:hover,.filter-btn:hover{background:#f3f7ef;border-color:#c8d8c8}
+.nav-item,.coach-card,.panel,.stat-card,.btn-primary,.btn-quiet{transition:background-color .18s ease,border-color .18s ease,box-shadow .18s ease,transform .18s ease}
+.stat-card:hover,.panel:hover{box-shadow:0 9px 24px rgba(25,51,34,.06)}
+.student-table th{background:#f6f8f4;color:#77877c}
+.student-table tbody tr:hover{background:#f7faf5}
+.search-box{border-radius:9px;border-color:#dfe7df}
+.status-active{background:#e6f1e5;color:#39744d}
+.date-strip>button.selected{background:#32764f}
+.footer{color:#89968c}
+.login-visual{background:linear-gradient(145deg,#102f22,#1e4b34)}
+.login-visual .brand-mark{background:#315840;color:#d9edbd}
+.login-art>svg{color:#a9ca8b}
+.login-art span{color:#d9e9cd}
+.login-submit{border-radius:10px}
+.login-form input{border-radius:9px;border-color:#dfe7df}
+.login-form input:focus{border-color:#81ae80;outline:3px solid #81ae8026}
+.modal,.recovery-card{border-radius:16px;box-shadow:0 18px 50px #163b2517}
+.portal-header{background:#fff}.portal-main{color:var(--ink)}
+@media(max-width:860px){.sidebar{box-shadow:12px 0 34px #0c241a38}.main-content{background:#f3f5f0}}
+@media(max-width:640px){.page-wrap{padding-top:27px}.welcome-row h1{font-size:25px}.panel{padding:16px}.stat-card{padding:14px;min-height:118px}}

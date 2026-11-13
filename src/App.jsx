@@ -3,7 +3,7 @@ import {
   Activity, Apple, ArrowDownRight, ArrowRight, ArrowUpRight, Bell, CalendarDays,
   Check, ChevronDown, ChevronLeft, ChevronRight, CircleDollarSign, Clock3,
   Dumbbell, Ellipsis, FileText, Filter, LayoutDashboard, LogOut, Menu, Plus,
-  Search, Settings, ShieldCheck, SlidersHorizontal, Sparkles, Users, X,
+  Search, ShieldCheck, SlidersHorizontal, Sparkles, Users, X,
 } from 'lucide-react'
 import { hasSupabaseConfig, supabase } from './lib/supabase'
 
@@ -48,7 +48,6 @@ export default function App(){
   const [search, setSearch] = useState('')
   const [period, setPeriod] = useState('Bu ay')
   const [showAdd, setShowAdd] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
   const [notice, setNotice] = useState('')
   const [mobileNav, setMobileNav] = useState(false)
 
@@ -128,7 +127,7 @@ export default function App(){
       <div className="brand"><div className="brand-mark"><Activity size={20}/></div><div><strong>EMRE AKKOYUN</strong><span>PERSONAL TRAINER</span></div><button className="icon-btn mobile-close" onClick={()=>setMobileNav(false)}><X size={17}/></button></div>
       <div className="workspace-label">ÇALIŞMA ALANI</div>
       <nav className="nav-list">{navItems.map(({label,icon:Icon})=><button key={label} className={`nav-item ${activePage===label?'active':''}`} onClick={()=>{setActivePage(label);setMobileNav(false)}}><Icon size={18}/><span>{label}</span>{label==='Öğrenciler'&&<em>{students.length}</em>}</button>)}</nav>
-      <div className="sidebar-bottom"><div className="coach-card"><div className="coach-icon"><Sparkles size={17}/></div><strong>Bir sonraki seviyeye</strong><p>Öğrenci gelişimini düzenli ölçümle takip et.</p><button onClick={()=>setActivePage('Gelişim')}>Gelişim raporları <ArrowRight size={14}/></button></div><button className="nav-item muted" onClick={()=>setShowPassword(true)}><Settings size={18}/><span>Şifre belirle</span></button><div className="user-mini"><div className="avatar avatar-coach">EA</div><div className="user-label"><strong>{profile?.full_name||'Emre Akkoyun'}</strong><span>{profile?.role==='admin'?'Yönetici':'PT Koçu'}</span></div><button className="icon-btn" title="Oturumu kapat" onClick={signOut}><LogOut size={16}/></button></div></div>
+      <div className="sidebar-bottom"><div className="coach-card"><div className="coach-icon"><Sparkles size={17}/></div><strong>Bir sonraki seviyeye</strong><p>Öğrenci gelişimini düzenli ölçümle takip et.</p><button onClick={()=>setActivePage('Gelişim')}>Gelişim raporları <ArrowRight size={14}/></button></div><div className="user-mini"><div className="avatar avatar-coach">EA</div><div className="user-label"><strong>{profile?.full_name||'Emre Akkoyun'}</strong><span>{profile?.role==='admin'?'Yönetici':'PT Koçu'}</span></div><button className="icon-btn" title="Oturumu kapat" onClick={signOut}><LogOut size={16}/></button></div></div>
     </aside>
     <main className="main-content">
       <header className="topbar"><button className="icon-btn menu-toggle" onClick={()=>setMobileNav(true)} aria-label="Menüyü aç"><Menu size={20}/></button><div className="breadcrumb"><span>PT Yönetimi</span><ChevronRight size={14}/><strong>{activePage}</strong></div><div className="topbar-right"><span className={`connection ${hasSupabaseConfig?'connected':''}`}><i/>{hasSupabaseConfig?'Supabase bağlı':'Önizleme modu'}</span><button className="icon-btn notification-btn" aria-label="Bildirimler"><Bell size={18}/><i/></button><div className="avatar avatar-coach top-avatar">EA</div></div></header>
@@ -141,7 +140,6 @@ export default function App(){
       <footer className="footer"><span>© 2026 Emre Akkoyun PT Management</span><span><i/> Tüm sistemler çalışıyor</span></footer>
     </main>
     {showAdd&&<AddStudentModal onClose={()=>setShowAdd(false)} onSave={createStudent}/>}
-    {showPassword&&<PasswordSetModal onClose={()=>setShowPassword(false)} onSaved={()=>{setShowPassword(false);setNotice('Şifren kaydedildi. Masaüstünde de aynı e-posta ve şifreyle giriş yapabilirsin.')}}/>}
   </div>
 }
 
@@ -150,15 +148,6 @@ function LoginScreen(){
   async function login(e){e.preventDefault();setWorking(true);setError('');const {error}=await supabase.auth.signInWithPassword({email,password});if(error)setError(error.message);setWorking(false)}
   async function reset(){if(!email){setError('Önce e-posta adresini yaz.');return}setWorking(true);const redirectTo=`${window.location.origin}${import.meta.env.BASE_URL}`;const {error}=await supabase.auth.resetPasswordForEmail(email,{redirectTo});setError(error?error.message:'Şifre belirleme bağlantısı e-posta adresine gönderildi.');setWorking(false)}
   return <div className="login-page"><div className="login-visual"><div className="brand"><div className="brand-mark"><Activity size={20}/></div><div><strong>EMRE AKKOYUN</strong><span>PERSONAL TRAINER</span></div></div><div className="login-art"><div className="art-orbit orbit-one"/><div className="art-orbit orbit-two"/><div className="art-sun"/><Activity size={220} strokeWidth={0.7}/><span>STRENGTH<br/>IN EVERY<br/>STEP.</span></div><div className="login-caption"><span>01 / 03</span><p>Her hedef, doğru<br/>planla başlar.</p></div></div><div className="login-form-wrap"><form className="login-form" onSubmit={login}><div className="eyebrow">HOŞ GELDİN</div><h1>Hesabına giriş yap</h1><p>Antrenman yolculuğuna kaldığın yerden devam et.</p><label>E-posta adresi<input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="ornek@email.com" required autoComplete="email"/></label><label>Şifre<input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" required autoComplete="current-password"/></label>{error&&<div className="form-error">{error}</div>}<button className="btn-primary login-submit" disabled={working}>{working?'Giriş yapılıyor…':'Giriş yap'} <ArrowRight size={16}/></button><button type="button" className="text-link" onClick={reset}>Şifremi unuttum</button><div className="secure-note"><ShieldCheck size={15}/> Hesabın güvenli Supabase girişiyle korunuyor.</div></form><div className="login-footer">© 2026 Emre Akkoyun <span>·</span> Gizlilik ve kullanım</div></div></div>
-}
-
-function PasswordSetModal({onClose,onSaved}){
-  const [password,setPassword]=useState('')
-  const [confirm,setConfirm]=useState('')
-  const [working,setWorking]=useState(false)
-  const [error,setError]=useState('')
-  async function submit(e){e.preventDefault();setError('');if(password.length<8){setError('Şifre en az 8 karakter olmalı.');return}if(password!==confirm){setError('Şifreler eşleşmiyor.');return}setWorking(true);const {error:updateError}=await supabase.auth.updateUser({password});setWorking(false);if(updateError)setError(updateError.message);else onSaved()}
-  return <div className="modal-scrim" onMouseDown={e=>{if(e.target===e.currentTarget)onClose()}}><form className="modal password-modal" onSubmit={submit}><div className="modal-head"><div><div className="panel-kicker">HESAP GÜVENLİĞİ</div><h2>Şifreni belirle</h2><p>Bu işlem e-posta göndermez. En az 8 karakter kullan.</p></div><button type="button" className="icon-btn" onClick={onClose} aria-label="Kapat"><X size={18}/></button></div><div className="form-grid"><label className="full-field">Yeni şifre<input type="password" required minLength={8} autoComplete="new-password" value={password} onChange={e=>setPassword(e.target.value)}/></label><label className="full-field">Yeni şifreyi tekrar yaz<input type="password" required autoComplete="new-password" value={confirm} onChange={e=>setConfirm(e.target.value)}/></label></div>{error&&<div className="form-error">{error}</div>}<div className="modal-actions"><button className="btn-quiet" type="button" onClick={onClose}>Vazgeç</button><button className="btn-primary" disabled={working}>{working?'Kaydediliyor…':'Şifreyi kaydet'}</button></div></form></div>
 }
 
 function PasswordRecovery({onComplete}){
