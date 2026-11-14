@@ -25,9 +25,9 @@ function ProgressChart({measurements,targetWeight}){
  return <article className="panel detail-progress-chart"><div className="panel-head"><div><div className="panel-kicker">GELİŞİM GRAFİĞİ</div><h3>{label}</h3></div><select value={metric} onChange={e=>setMetric(e.target.value)}><option value="weight_kg">Kilo</option><option value="body_fat_pct">Yağ oranı</option><option value="muscle_mass_kg">Kas kütlesi</option><option value="waist_cm">Bel çevresi</option></select></div><div className="progress-chart-scroll"><svg viewBox="0 0 680 210" role="img" aria-label={`${label} ölçüm geçmişi grafiği`}><path d="M32 30H648M32 90H648M32 150H648" className="chart-grid"/>{targetY!=null&&<><path d={`M32 ${targetY}H648`} className="chart-target"/><text x="646" y={Math.max(12,targetY-5)} textAnchor="end" className="chart-target-label">Hedef {targetWeight}</text></>}{points.length>1&&<polyline points={points.map(p=>`${p.x},${p.y}`).join(' ')} className="chart-line"/>}{points.map((p,i)=><g key={`${p.date}-${i}`}><circle cx={p.x} cy={p.y} r="5" className="chart-point"><title>{shortDate(p.date)} · {p.value}</title></circle>{(i===0||i===points.length-1||points.length<5)&&<text x={p.x} y="178" textAnchor="middle" className="chart-date-label">{shortDate(p.date).replace(/\s\d{4}$/,'')}</text>}</g>)}</svg></div><div className="chart-value-row"><span>{points.length} ölçüm kaydı</span><strong>{points.at(-1).value} {metric==='body_fat_pct'?'%':metric==='weight_kg'||metric==='muscle_mass_kg'?'kg':'cm'}</strong></div></article>
 }
 
-export default function StudentDetail({student:initialStudent,onClose,onChanged}) {
+export default function StudentDetail({student:initialStudent,initialTab='Genel Bakış',onClose,onChanged}) {
   const [student,setStudent]=useState(initialStudent)
-  const [tab,setTab]=useState('Genel Bakış')
+  const [tab,setTab]=useState(initialTab)
   const [loading,setLoading]=useState(true)
   const [saving,setSaving]=useState(false)
   const [error,setError]=useState('')
