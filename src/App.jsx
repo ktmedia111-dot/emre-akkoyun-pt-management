@@ -144,7 +144,7 @@ export default function App(){
   function openStudent(student,tab='Genel Bakış'){setSelectedStudent(student);setSelectedStudentTab(tab)}
 
   if(hasSupabaseConfig && recoveryMode) return <PasswordRecovery onComplete={()=>setRecoveryMode(false)} />
-  if(hasSupabaseConfig && !authReady) return <div className="loading-screen"><span className="loader"/>Oturum kontrol ediliyor…</div>
+  if(hasSupabaseConfig && !authReady) return <div className="loading-screen"><div className="loading-brand"><div className="brand-mark"><Activity size={20}/></div><div><strong>EMRE AKKOYUN</strong><span>PERSONAL TRAINER</span></div></div><div className="loading-status"><span className="loader"/>Oturum kontrol ediliyor…</div></div>
   if(hasSupabaseConfig && !session) return <LoginScreen />
   if(hasSupabaseConfig && session && profile && profile.role!=='admin') return <StudentView user={session.user} profile={profile} onSignOut={signOut} />
   if(hasSupabaseConfig && session && !profile) return <div className="loading-screen"><div className="setup-card"><ShieldCheck size={26}/><h2>Hesap erişimi bekleniyor</h2><p>Hesabınız henüz bir PT profiline bağlanmadı. Emre yöneticiyse Supabase profiles tablosunda rolü admin olarak ayarlanmalı. Öğrenci erişimi için profil, öğrenci kaydıyla eşleştirilmelidir.</p><button className="btn-primary" onClick={signOut}>Çıkış yap</button></div></div>
